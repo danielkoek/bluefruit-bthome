@@ -28,30 +28,30 @@ char device_name[] = "AIR-PUMP";
 const int programLength = 24;
 int manualOverride = 100;
 Schedule programs[24] = {
-  { true, 0, 0, 0, 10 },    // 12 AM to 12:10 AM
-  { true, 1, 0, 1, 10 },    // 1 AM to 1:10 AM
-  { true, 2, 0, 2, 10 },    // 2 AM to 2:10 AM
-  { true, 3, 0, 3, 10 },    // 3 AM to 3:10 AM
-  { true, 4, 0, 4, 10 },    // 4 AM to 4:10 AM
-  { true, 5, 0, 5, 10 },    //  5 AM to 5:10 AM
-  { true, 6, 0, 6, 10 },    // 6 AM to 6:10 AM
-  { true, 7, 0, 7, 10 },    // 7 AM to 7:10 AM
-  { true, 8, 0, 8, 10 },    // 8 AM to 8:10 AM
-  { true, 9, 0, 9, 10 },    // 9 AM to 9:10 AM
-  { true, 10, 0, 10, 10 },  // 10 AM to 10:10 AM
-  { true, 11, 0, 11, 10 },  // 11 AM to 11:10 AM
-  { true, 12, 0, 12, 10 },  // 12 PM to 12:10 PM
-  { true, 13, 0, 13, 10 },  // 1 PM to 1:10 PM
-  { true, 14, 0, 14, 10 },  // 2 PM to 2:10 PM
-  { true, 15, 0, 15, 10 },  // 3 PM to 3:10 PM
-  { true, 16, 0, 16, 10 },  // 4 PM to 4:10 PM
-  { true, 17, 0, 17, 10 },  // 5 PM to 5:10 PM
-  { true, 18, 0, 18, 10 },  // 6 PM to 6:10 PM
-  { true, 19, 0, 19, 10 },  // 7 PM to 7:10 PM
-  { true, 20, 0, 20, 10 },  // 8 PM to 8:10 PM
-  { true, 21, 0, 21, 10 },  // 9 PM to 9:10 PM
-  { true, 22, 0, 22, 10 },  // 10 PM to 10:10 PM
-  { true, 23, 0, 23, 10 }   // 11 PM to 11:10 PM
+    {true, 0, 0, 0, 10},    // 12 AM to 12:10 AM
+    {true, 1, 0, 1, 10},    // 1 AM to 1:10 AM
+    {true, 2, 0, 2, 10},    // 2 AM to 2:10 AM
+    {true, 3, 0, 3, 10},    // 3 AM to 3:10 AM
+    {true, 4, 0, 4, 10},    // 4 AM to 4:10 AM
+    {true, 5, 0, 5, 10},    //  5 AM to 5:10 AM
+    {true, 6, 0, 6, 10},    // 6 AM to 6:10 AM
+    {true, 7, 0, 7, 10},    // 7 AM to 7:10 AM
+    {true, 8, 0, 8, 10},    // 8 AM to 8:10 AM
+    {true, 9, 0, 9, 10},    // 9 AM to 9:10 AM
+    {true, 10, 0, 10, 10},  // 10 AM to 10:10 AM
+    {true, 11, 0, 11, 10},  // 11 AM to 11:10 AM
+    {true, 12, 0, 12, 10},  // 12 PM to 12:10 PM
+    {true, 13, 0, 13, 10},  // 1 PM to 1:10 PM
+    {true, 14, 0, 14, 10},  // 2 PM to 2:10 PM
+    {true, 15, 0, 15, 10},  // 3 PM to 3:10 PM
+    {true, 16, 0, 16, 10},  // 4 PM to 4:10 PM
+    {true, 17, 0, 17, 10},  // 5 PM to 5:10 PM
+    {true, 18, 0, 18, 10},  // 6 PM to 6:10 PM
+    {true, 19, 0, 19, 10},  // 7 PM to 7:10 PM
+    {true, 20, 0, 20, 10},  // 8 PM to 8:10 PM
+    {true, 21, 0, 21, 10},  // 9 PM to 9:10 PM
+    {true, 22, 0, 22, 10},  // 10 PM to 10:10 PM
+    {true, 23, 0, 23, 10}   // 11 PM to 11:10 PM
 };
 #ifdef TEMP_HUM
 Adafruit_SHT4x sht4 = Adafruit_SHT4x();
@@ -60,9 +60,7 @@ RTC_DS3231 rtc;
 Adafruit_INA3221 ina3221;
 BTHome bthome;
 // Helper for consistent output
-void printToSerial(const String& msg) {
-  Serial.println(msg);
-}
+void printToSerial(const String& msg) { Serial.println(msg); }
 
 void checkI2CPorts() {
   byte error, address;
@@ -188,7 +186,7 @@ void loop() {
   float load_current = ina3221.getCurrentAmps(LOAD_CHANNEL);
   float batteryVoltage = load_voltage;
   batteryVoltage =
-    constrain(batteryVoltage, minBatteryVoltage, maxBatteryVoltage);
+      constrain(batteryVoltage, minBatteryVoltage, maxBatteryVoltage);
   int batteryPercent = map(batteryVoltage * 100, minBatteryVoltage * 100,
                            maxBatteryVoltage * 100, 0, 100);
   bthome.addMeasurement(ID_BATTERY, (uint64_t)batteryPercent);  // 3
@@ -229,7 +227,8 @@ void loop() {
     }
   }
   if (manualOverride > 0) {
-    printToSerial("Manual on is on for: " + String(manualOverride * DELAY_MS) + "S");
+    printToSerial("Manual on is on for: " + String(manualOverride * DELAY_MS) +
+                  "S");
   }
   digitalWrite(LED_BLUE, !digitalRead(LED_BLUE));
   digitalWrite(PIN_LED, !digitalRead(PIN_LED));
@@ -240,76 +239,3 @@ void loop() {
   }
   delay(DELAY_MS);  // Check every 3 seconds
 }
-
-// Object ids by order
-#if 0
-#define ID_PACKET 0x00
-#define ID_BATTERY 0x01
-#define ID_TEMPERATURE_PRECISE 0x02
-#define ID_HUMIDITY_PRECISE 0x03
-#define ID_PRESSURE 0x04
-#define ID_ILLUMINANCE 0x05
-#define ID_MASS 0x06
-#define ID_MASSLB 0x07
-#define ID_DEWPOINT 0x08
-#define ID_COUNT 0x09
-#define ID_ENERGY 0x0A
-#define ID_POWER 0x0B
-#define ID_VOLTAGE 0x0C
-#define ID_PM25 0x0D
-#define ID_PM10 0x0E
-#define STATE_GENERIC_BOOLEAN 0x0F
-#define STATE_POWER_ON 0x10
-#define STATE_OPENING 0x11
-#define ID_CO2 0x12
-#define ID_TVOC 0x13
-#define ID_MOISTURE_PRECISE 0x14
-#define STATE_BATTERY_LOW 0x15
-#define STATE_BATTERY_CHARHING 0x16
-#define STATE_CO 0x17
-#define STATE_COLD 0x18
-#define STATE_CONNECTIVITY 0x19
-#define STATE_DOOR 0x1A
-#define STATE_GARAGE_DOOR 0x1B
-#define STATE_GAS_DETECTED 0x1C
-#define STATE_HEAT 0x1D
-#define STATE_LIGHT 0x1E
-#define STATE_LOCK 0x1F
-#define STATE_MOISTURE 0x20
-#define STATE_MOTION 0x21
-#define STATE_MOVING 0x22
-#define STATE_OCCUPANCY 0x23
-#define STATE_PLUG 0x24
-#define STATE_PRESENCE 0x25
-#define STATE_PROBLEM 0x26
-#define STATE_RUNNING 0x27
-#define STATE_SAFETY 0x28
-#define STATE_SMOKE 0x29
-#define STATE_SOUND 0x2A
-#define STATE_TAMPER 0x2B
-#define STATE_VIBRATION 0x2C
-#define STATE_WINDOW 0x2D
-#define ID_HUMIDITY 0x2E
-#define ID_MOISTURE 0x2F
-#define EVENT_BUTTON 0x3A
-#define EVENT_DIMMER 0x3C
-#define ID_COUNT2 0x3D
-#define ID_COUNT4 0x3E
-#define ID_ROTATION 0x3F
-#define ID_DISTANCE 0x40
-#define ID_DISTANCEM 0x41
-#define ID_DURATION 0x42
-#define ID_CURRENT 0x43
-#define ID_SPD 0x44
-#define ID_TEMPERATURE 0x45
-#define ID_UV 0x46
-#define ID_VOLUME1 0x47
-#define ID_VOLUME2 0x48
-#define ID_VOLUMEFR 0x49
-#define ID_VOLTAGE1 0x4A
-#define ID_GAS 0x4B
-#define ID_GAS4 0x4C
-#define ID_ENERGY4 0x4D
-#define ID_VOLUME 0x4E
-#define ID_WATER 0x4F
-#endif

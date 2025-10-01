@@ -1,9 +1,4 @@
-#include "Arduino.h"
-#include <string>
-#include <vector>
-#include <bluefruit.h>
 #include "BTHome.h"
-
 
 void BTHome::begin(const char* device_name) {
   Bluefruit.begin();
@@ -11,21 +6,24 @@ void BTHome::begin(const char* device_name) {
   Bluefruit.setName(device_name);
 }
 
-
 void BTHome::resetMeasurement() {
   this->m_sensorDataIdx = 0;
   this->last_object_id = 0;
   this->m_sortEnable = false;
 }
 
-void BTHome::addMeasurement_state(uint8_t sensor_id, uint8_t state, uint8_t steps) {
-  if ((this->m_sensorDataIdx + 2 + (steps > 0 ? 1 : 0)) <= MEASUREMENT_MAX_LEN - 0) {
-    this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(sensor_id & 0xff);
+void BTHome::addMeasurement_state(uint8_t sensor_id, uint8_t state,
+                                  uint8_t steps) {
+  if ((this->m_sensorDataIdx + 2 + (steps > 0 ? 1 : 0)) <=
+      MEASUREMENT_MAX_LEN - 0) {
+    this->m_sensorData[this->m_sensorDataIdx] =
+        static_cast<byte>(sensor_id & 0xff);
     this->m_sensorDataIdx++;
     this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(state & 0xff);
     this->m_sensorDataIdx++;
     if (steps > 0) {
-      this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(steps & 0xff);
+      this->m_sensorData[this->m_sensorDataIdx] =
+          static_cast<byte>(steps & 0xff);
       this->m_sensorDataIdx++;
     }
     if (!this->m_sortEnable) {
@@ -42,10 +40,12 @@ void BTHome::addMeasurement(uint8_t sensor_id, uint64_t value) {
   uint8_t size = getByteNumber(sensor_id);
   uint16_t factor = getFactor(sensor_id);
   if ((this->m_sensorDataIdx + size + 1) <= MEASUREMENT_MAX_LEN) {
-    this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(sensor_id & 0xff);
+    this->m_sensorData[this->m_sensorDataIdx] =
+        static_cast<byte>(sensor_id & 0xff);
     this->m_sensorDataIdx++;
     for (uint8_t i = 0; i < size; i++) {
-      this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(((value * factor) >> (8 * i)) & 0xff);
+      this->m_sensorData[this->m_sensorDataIdx] =
+          static_cast<byte>(((value * factor) >> (8 * i)) & 0xff);
       this->m_sensorDataIdx++;
     }
     if (!this->m_sortEnable) {
@@ -63,10 +63,12 @@ void BTHome::addMeasurement(uint8_t sensor_id, float value) {
   uint16_t factor = getFactor(sensor_id);
   if ((this->m_sensorDataIdx + size + 1) <= MEASUREMENT_MAX_LEN) {
     uint64_t value2 = static_cast<uint64_t>(value * factor);
-    this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(sensor_id & 0xff);
+    this->m_sensorData[this->m_sensorDataIdx] =
+        static_cast<byte>(sensor_id & 0xff);
     this->m_sensorDataIdx++;
     for (uint8_t i = 0; i < size; i++) {
-      this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>((value2 >> (8 * i)) & 0xff);
+      this->m_sensorData[this->m_sensorDataIdx] =
+          static_cast<byte>((value2 >> (8 * i)) & 0xff);
       this->m_sensorDataIdx++;
     }
     if (!this->m_sortEnable) {
@@ -83,14 +85,16 @@ void BTHome::addMeasurement(uint8_t sensor_id, float value) {
 void BTHome::addMeasurement(uint8_t sensor_id, uint8_t* value, uint8_t size) {
   if ((this->m_sensorDataIdx + size + 1) <= MEASUREMENT_MAX_LEN) {
     // Add sensor id
-    this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(sensor_id & 0xff);
+    this->m_sensorData[this->m_sensorDataIdx] =
+        static_cast<byte>(sensor_id & 0xff);
     this->m_sensorDataIdx++;
     // Add data size, 1 byte
     this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(size & 0xff);
     this->m_sensorDataIdx++;
     // Add data bytes
     for (uint8_t i = 0; i < size; i++) {
-      this->m_sensorData[this->m_sensorDataIdx] = static_cast<byte>(value[i] & 0xff);
+      this->m_sensorData[this->m_sensorDataIdx] =
+          static_cast<byte>(value[i] & 0xff);
       this->m_sensorDataIdx++;
     }
     if (!this->m_sortEnable) {
@@ -121,10 +125,10 @@ void BTHome::sortSensorData() {
   struct DATA_BLOCK temp_data_block;
 
   for (i = 0, j = 0, data_block_num = 0; j < this->m_sensorDataIdx; i++) {
-    //copy the object id
+    // copy the object id
     data_block[i].object_id = this->m_sensorData[j];
     data_block_num++;
-    //copy the data length
+    // copy the data length
     if (this->m_sensorData[j] == EVENT_DIMMER) {
       if (this->m_sensorData[j + 1] == EVENT_DIMMER_NONE)
         data_block[i].data_len = 1;
@@ -133,26 +137,27 @@ void BTHome::sortSensorData() {
     } else {
       data_block[i].data_len = getByteNumber(this->m_sensorData[j]);
     }
-    //copy the data
+    // copy the data
     for (k = 0; k < data_block[i].data_len; k++) {
       data_block[i].data[k] = this->m_sensorData[j + 1 + k];
     }
-    //move to the next object id location
+    // move to the next object id location
     j = j + data_block[i].data_len + 1;
   }
 
   if (data_block_num > 1) {
-    //bubble sort
+    // bubble sort
     for (i = 0; i < data_block_num - 1; i++) {
       for (j = 0; j < data_block_num - 1 - i; j++) {
         if (data_block[j].object_id > data_block[j + 1].object_id) {
           memcpy(&temp_data_block, &data_block[j], sizeof(struct DATA_BLOCK));
           memcpy(&data_block[j], &data_block[j + 1], sizeof(struct DATA_BLOCK));
-          memcpy(&data_block[j + 1], &temp_data_block, sizeof(struct DATA_BLOCK));
+          memcpy(&data_block[j + 1], &temp_data_block,
+                 sizeof(struct DATA_BLOCK));
         }
       }
     }
-    //copy the new order to m_sensorData array
+    // copy the new order to m_sensorData array
     for (i = 0, j = 0; i < data_block_num && j < this->m_sensorDataIdx; i++) {
       this->m_sensorData[j] = data_block[i].object_id;
       for (k = 0; k < data_block[i].data_len; k++) {
@@ -170,8 +175,8 @@ void BTHome::startAdv() {
     uint8_t encrypt;
     uint8_t sensor_measurements[MEASUREMENT_MAX_LEN];
   } bthome = {
-    .bthome_uuid = UUID16_SVC_BTHOME,
-    .encrypt = NO_ENCRYPT,
+      .bthome_uuid = UUID16_SVC_BTHOME,
+      .encrypt = NO_ENCRYPT,
   };
   uint8_t len = 0;
   // Add the sensor data to the Service Data
@@ -184,13 +189,15 @@ void BTHome::startAdv() {
   Serial.print("Service Data: ");
   for (uint8_t i = 0; i < len; i++) {
     Serial.print("0x");
-    if (bthome.sensor_measurements[i] < 0x10) Serial.print("0");  // pad single digit hex
+    if (bthome.sensor_measurements[i] < 0x10)
+      Serial.print("0");  // pad single digit hex
     Serial.print(bthome.sensor_measurements[i], HEX);
     Serial.print(" ");
   }
   Serial.println();
   if (Bluefruit.Advertising.isRunning()) {
-    Serial.println("Stopping");
+    delay(1000);  // wait a second before stopping
+    Serial.println("Stopping current advertising");
     if (Bluefruit.Advertising.stop()) {
       Serial.println("Stopped sucessfull");
       Bluefruit.Advertising.clearData();
@@ -198,7 +205,8 @@ void BTHome::startAdv() {
     }
   }
   Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
-  if (!Bluefruit.Advertising.addData(BLE_GAP_AD_TYPE_SERVICE_DATA, &bthome, len + 3)) {
+  if (!Bluefruit.Advertising.addData(BLE_GAP_AD_TYPE_SERVICE_DATA, &bthome,
+                                     len + 3)) {
     Serial.println("Couldn't add serviceData");
   }
   Bluefruit.ScanResponse.addName();

@@ -1,7 +1,19 @@
+#include <bluefruit.h>
 
+#include <string>
+#include <vector>
 
-#define BLE_ADVERT_MAX_LEN 31
-#define MEASUREMENT_MAX_LEN 23  //23=31(BLE_ADVERT_MAX_LEN)-3(FLAG)-1(SERVICE_DATA)-2(UUID)-1(ENCRYPT)-1(serviceData length bit)
+#include "Arduino.h"
+
+#define BLE_ADVERT_MAX_LEN 30
+#define MEASUREMENT_MAX_LEN 22  // 22=
+// 30(BLE_ADVERT_MAX_LEN)
+//-3(length, flags, flag spec)
+//-1(LENGTH)
+//-1(SERVICE_DATA)
+//-2(UUID)
+//-1(ENCRYPT)
+// =22
 #define BIND_KEY_LEN 16
 #define NONCE_LEN 13
 #define UUID16_SVC_BTHOME 0xFCD2
@@ -98,22 +110,22 @@
 #define EVENT_DIMMER_RIGHT 0x02
 
 class BTHome {
-public:
+ public:
   void begin(const char* device_name);
   void sendPacket();
   void resetMeasurement();
-  void addMeasurement_state(uint8_t sensor_id, uint8_t state, uint8_t steps = 0);
+  void addMeasurement_state(uint8_t sensor_id, uint8_t state,
+                            uint8_t steps = 0);
   void addMeasurement(uint8_t sensor_id, uint64_t value);
   void addMeasurement(uint8_t sensor_id, float value);
   void addMeasurement(uint8_t sensor_id, uint8_t* value, uint8_t size);
 
-private:
-
+ private:
   void startAdv();
   uint8_t getByteNumber(uint8_t sens);
   uint16_t getFactor(uint8_t sens);
   uint8_t m_sensorDataIdx;
-  byte m_sensorData[MEASUREMENT_MAX_LEN] = { 0 };
+  byte m_sensorData[MEASUREMENT_MAX_LEN] = {0};
   void sortSensorData();
   String dev_name;
   bool m_sortEnable;
