@@ -5,15 +5,15 @@
 
 #include "Arduino.h"
 
-#define BLE_ADVERT_MAX_LEN 30
-#define MEASUREMENT_MAX_LEN 22  // 22=
-// 30(BLE_ADVERT_MAX_LEN)
+#define BLE_ADVERT_MAX_LEN 31
+#define MEASUREMENT_MAX_LEN 23  // 23=
+// 31(BLE_ADVERT_MAX_LEN)
 //-3(length, flags, flag spec)
 //-1(LENGTH)
 //-1(SERVICE_DATA)
 //-2(UUID)
 //-1(ENCRYPT)
-// =22
+// =23
 #define BIND_KEY_LEN 16
 #define NONCE_LEN 13
 #define UUID16_SVC_BTHOME 0xFCD2
