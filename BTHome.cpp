@@ -196,10 +196,9 @@ void BTHome::startAdv() {
   }
   Serial.println();
   if (Bluefruit.Advertising.isRunning()) {
-    delay(1000);  // wait a second before stopping
     Serial.println("Stopping current advertising");
     if (Bluefruit.Advertising.stop()) {
-      Serial.println("Stopped sucessfull");
+      Serial.println("Stopped successfully");
       Bluefruit.Advertising.clearData();
       Bluefruit.ScanResponse.clearData();
     }
