@@ -1,6 +1,5 @@
-#include <DallasTemperature.h>
 #include <OneWire.h>
-
+#include <DallasTemperature.h>
 #include "BTHome.h"
 
 #define DELAY_MS 3000
@@ -8,8 +7,7 @@
 #define ONE_WIRE_BUS D9
 #define VBAT_PIN A1
 
-// Setup a oneWire instance to communicate with any OneWire devices (not just
-// Maxim/Dallas temperature ICs)
+// Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 
 // Pass our oneWire reference to Dallas Temperature.
@@ -19,10 +17,11 @@ char device_name[] = "ULTRASONIC";
 
 BTHome bthome;
 // Helper for consistent output
-void printToSerial(const String& msg) { Serial.println(msg); }
+void printToSerial(const String& msg) {
+  Serial.println(msg);
+}
 int readJSNSR04T() {
-  Serial1.write(
-      0x55);  // start ping. call before readSerial(). in 19==47Kohm mode.
+  Serial1.write(0x55);  // start ping. call before readSerial(). in 19==47Kohm mode.
   byte serialData[4];
   int distance = -1;
   if (Serial1.available() >= 4) {
@@ -38,14 +37,12 @@ float readBattery(void) {
   float raw;
   // Get the raw 12-bit, 0..3000mV ADC value
   raw = analogRead(VBAT_PIN);
-  return raw *
-         (2.0F * 0.73242188F);  // Compensation factor for the VBAT divider (2*
-                                // 220k resistors), 3.0V ADC range and 12-bit
-                                // ADC resolution = 3000mV/4096
+  return raw * (2.0F * 0.73242188F);  // Compensation factor for the VBAT divider (2* 220k resistors), 3.0V ADC range and 12-bit ADC resolution = 3000mV/4096
 }
 
 uint8_t battteryToPercent(float mvolts) {
-  if (mvolts < 3300) return 0;
+  if (mvolts < 3300)
+    return 0;
 
   if (mvolts < 3600) {
     mvolts -= 3300;
