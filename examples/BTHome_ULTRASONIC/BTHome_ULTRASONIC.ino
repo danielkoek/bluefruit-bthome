@@ -2,7 +2,6 @@
 #include <DallasTemperature.h>
 #include "BTHome.h"
 
-#define DELAY_MS 3000
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS D9
 #define VBAT_PIN A1
@@ -52,8 +51,8 @@ uint8_t battteryToPercent(float mvolts) {
   mvolts -= 3600;
   return 10 + (mvolts * 0.15F);  // thats mvolts /6.66666666
 }
+
 void setup() {
-  pinMode(PIN_LED, OUTPUT);
   Serial1.begin(9600, SERIAL_8N1);
   // Set the analog reference to 3.0V (default = 3.6V)
   analogReference(AR_INTERNAL_3_0);
@@ -61,11 +60,13 @@ void setup() {
   analogReadResolution(12);  // Can be 8, 10, 12 or 14
   // Start up the library
   sensors.begin();
+  // Enable DC-DC converter
+  NRF_POWER->DCDCEN = 1;
+
   bthome.begin(device_name);
 }
 
 void loop() {
-  digitalWrite(PIN_LED, HIGH);
   sensors.requestTemperatures();
   float tempC = sensors.getTempCByIndex(0);
   if (tempC != DEVICE_DISCONNECTED_C) {
@@ -93,8 +94,7 @@ void loop() {
     bthome.addMeasurement(ID_DISTANCE, (uint64_t)distance);  // 3
   }
   bthome.sendPacket();
-
-  digitalWrite(PIN_LED, LOW);
-
-  delay(DELAY_MS);  // Check every 3 seconds
+  __WFE();
+  __WFI();
+  delay(10000);  // advertising period = 10s
 }

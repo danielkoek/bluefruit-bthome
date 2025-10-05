@@ -2,7 +2,9 @@
 
 void BTHome::begin(const char* device_name) {
   Bluefruit.begin();
-  Bluefruit.setTxPower(4);
+  Bluefruit.autoConnLed(false);
+  // -40, -20, -16, -12, -8, -4, 0, +2, +3, +4, +5, +6, +7, +8
+  Bluefruit.setTxPower(0);
   Bluefruit.setName(device_name);
 }
 
@@ -209,6 +211,7 @@ void BTHome::startAdv() {
     Serial.println("Couldn't add serviceData");
   }
   Bluefruit.ScanResponse.addName();
+  Bluefruit.ScanResponse.addTxPower();
   Bluefruit.Advertising.restartOnDisconnect(true);
   Bluefruit.Advertising.setInterval(160, 160);  // in unit of 0.625 ms
   Bluefruit.Advertising.setFastTimeout(30);

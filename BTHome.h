@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 
-#include "Arduino.h"
-
 #define BLE_ADVERT_MAX_LEN 31
 #define MEASUREMENT_MAX_LEN 23  // 23=
 // 31(BLE_ADVERT_MAX_LEN)
