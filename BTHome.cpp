@@ -7,8 +7,9 @@
 static BTHOME_DEFAULT_BACKEND g_defaultBackend;
 #endif
 
-BTHome::BTHome()
+BTHome::BTHome(bool useExtended)
     : m_ble(nullptr),
+      m_extended(useExtended),
       m_sensorDataIdx(0),
       m_sortEnable(false),
       last_object_id(0) {
@@ -18,8 +19,9 @@ BTHome::BTHome()
   memset(m_sensorData, 0, sizeof(m_sensorData));
 }
 
-BTHome::BTHome(BTHomeBLE& backend)
+BTHome::BTHome(BTHomeBLE& backend, bool useExtended)
     : m_ble(&backend),
+      m_extended(useExtended),
       m_sensorDataIdx(0),
       m_sortEnable(false),
       last_object_id(0) {
@@ -43,7 +45,7 @@ void BTHome::resetMeasurement() {
 void BTHome::addMeasurement_state(uint8_t sensor_id, uint8_t state,
                                   uint8_t steps) {
   if ((this->m_sensorDataIdx + 2 + (steps > 0 ? 1 : 0)) <=
-      MEASUREMENT_MAX_LEN - 0) {
+      maxMeasurementLen()) {
     this->m_sensorData[this->m_sensorDataIdx] =
         static_cast<byte>(sensor_id & 0xff);
     this->m_sensorDataIdx++;
@@ -70,7 +72,7 @@ void BTHome::addMeasurement_state(uint8_t sensor_id, uint8_t state,
 void BTHome::addMeasurement(uint8_t sensor_id, uint64_t value) {
   uint8_t size = getByteNumber(sensor_id);
   uint16_t factor = getFactor(sensor_id);
-  if ((this->m_sensorDataIdx + size + 1) <= MEASUREMENT_MAX_LEN) {
+  if ((this->m_sensorDataIdx + size + 1) <= maxMeasurementLen()) {
     this->m_sensorData[this->m_sensorDataIdx] =
         static_cast<byte>(sensor_id & 0xff);
     this->m_sensorDataIdx++;
@@ -95,7 +97,7 @@ void BTHome::addMeasurement(uint8_t sensor_id, uint64_t value) {
 void BTHome::addMeasurement(uint8_t sensor_id, float value) {
   uint8_t size = getByteNumber(sensor_id);
   uint16_t factor = getFactor(sensor_id);
-  if ((this->m_sensorDataIdx + size + 1) <= MEASUREMENT_MAX_LEN) {
+  if ((this->m_sensorDataIdx + size + 1) <= maxMeasurementLen()) {
     uint64_t value2 = static_cast<uint64_t>(value * factor);
     this->m_sensorData[this->m_sensorDataIdx] =
         static_cast<byte>(sensor_id & 0xff);
@@ -120,7 +122,7 @@ void BTHome::addMeasurement(uint8_t sensor_id, float value) {
 
 // TEXT and RAW data
 void BTHome::addMeasurement(uint8_t sensor_id, uint8_t* value, uint8_t size) {
-  if ((this->m_sensorDataIdx + size + 1) <= MEASUREMENT_MAX_LEN) {
+  if ((this->m_sensorDataIdx + size + 1) <= maxMeasurementLen()) {
     // Add sensor id
     this->m_sensorData[this->m_sensorDataIdx] =
         static_cast<byte>(sensor_id & 0xff);
@@ -154,14 +156,14 @@ void BTHome::sendPacket() {
 }
 
 void BTHome::sortSensorData() {
-  uint8_t i, j, k, data_block_num;
+  uint16_t i, j, k, data_block_num;
 
   struct DATA_BLOCK {
     byte object_id;
     byte data[4];
     uint8_t data_len;
   };
-  struct DATA_BLOCK data_block[MEASUREMENT_MAX_LEN / 2 + 1];
+  struct DATA_BLOCK data_block[MEASUREMENT_MAX_LEN_EXTENDED / 2 + 1];
   struct DATA_BLOCK temp_data_block;
 
   for (i = 0, j = 0, data_block_num = 0; j < this->m_sensorDataIdx; i++) {
@@ -212,8 +214,8 @@ void BTHome::startAdv() {
   if (this->m_sortEnable) sortSensorData();
 
   // Build BTHome service data: UUID16(2) + device_info(1) + measurements
-  uint8_t serviceData[MEASUREMENT_MAX_LEN + 3];
-  uint8_t pos = 0;
+  uint8_t serviceData[MEASUREMENT_MAX_LEN_EXTENDED + 3];
+  uint16_t pos = 0;
 
   // UUID16 little-endian
   serviceData[pos++] = UUID16_SVC_BTHOME & 0xFF;
@@ -221,14 +223,14 @@ void BTHome::startAdv() {
   // Device info byte (BTHome v2, no encryption)
   serviceData[pos++] = NO_ENCRYPT;
   // Sensor measurements
-  for (uint8_t i = 0; i < this->m_sensorDataIdx; i++) {
+  for (uint16_t i = 0; i < this->m_sensorDataIdx; i++) {
     serviceData[pos++] = this->m_sensorData[i];
   }
 
   Serial.print("Data length:");
   Serial.println(this->m_sensorDataIdx);
   Serial.print("Service Data: ");
-  for (uint8_t i = 0; i < this->m_sensorDataIdx; i++) {
+  for (uint16_t i = 0; i < this->m_sensorDataIdx; i++) {
     Serial.print("0x");
     if (this->m_sensorData[i] < 0x10) Serial.print("0");
     Serial.print(this->m_sensorData[i], HEX);

@@ -11,7 +11,7 @@ bool BTHomeBLE_Bluefruit::init(const char* deviceName, int8_t txPower) {
 }
 
 bool BTHomeBLE_Bluefruit::updateAdvertising(const uint8_t* serviceData,
-                                            uint8_t len,
+                                            uint16_t len,
                                             uint16_t interval625us) {
   if (Bluefruit.Advertising.isRunning()) {
     Bluefruit.Advertising.stop();

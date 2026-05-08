@@ -16,8 +16,9 @@
 class BTHomeBLE_Bluefruit : public BTHomeBLE {
  public:
   bool init(const char* deviceName, int8_t txPower = 0) override;
-  bool updateAdvertising(const uint8_t* serviceData, uint8_t len,
+  bool updateAdvertising(const uint8_t* serviceData, uint16_t len,
                          uint16_t interval625us = 160) override;
+  bool supportsExtended() override { return true; }
 };
 
 #endif  // BTHOME_BLUEFRUIT_AVAILABLE

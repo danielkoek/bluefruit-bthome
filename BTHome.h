@@ -21,7 +21,9 @@
 
 #define BLE_ADVERT_MAX_LEN 31
 #define MEASUREMENT_MAX_LEN \
-  23  // 31 - 3(flags) - 1(len) - 1(svc_data_type) - 2(UUID) - 1(encrypt) = 23
+  23  // Legacy: 31 - 3(flags) - 2(AD hdr) - 2(UUID) - 1(encrypt) = 23
+#define MEASUREMENT_MAX_LEN_EXTENDED \
+  BTHOME_EXTENDED_MAX_LEN  // Extended: ~248 bytes for measurements
 #define BIND_KEY_LEN 16
 #define NONCE_LEN 13
 #define UUID16_SVC_BTHOME 0xFCD2
@@ -119,8 +121,8 @@
 
 class BTHome {
  public:
-  BTHome();
-  BTHome(BTHomeBLE& backend);
+  BTHome(bool useExtended = false);
+  BTHome(BTHomeBLE& backend, bool useExtended = false);
   void begin(const char* device_name, int8_t txPower = 0);
   void sendPacket();
   void resetMeasurement();
@@ -131,6 +133,10 @@ class BTHome {
   void addMeasurement(uint8_t sensor_id, uint8_t* value, uint8_t size);
 
   BTHomeBLE* backend() { return m_ble; }
+  bool isExtended() const { return m_extended; }
+  uint16_t maxMeasurementLen() const {
+    return m_extended ? MEASUREMENT_MAX_LEN_EXTENDED : MEASUREMENT_MAX_LEN;
+  }
 
  private:
   void startAdv();
@@ -139,8 +145,9 @@ class BTHome {
   void sortSensorData();
 
   BTHomeBLE* m_ble;
-  uint8_t m_sensorDataIdx;
-  uint8_t m_sensorData[MEASUREMENT_MAX_LEN];
+  bool m_extended;
+  uint16_t m_sensorDataIdx;
+  uint8_t m_sensorData[MEASUREMENT_MAX_LEN_EXTENDED];
   bool m_sortEnable;
   uint8_t last_object_id;
 };
