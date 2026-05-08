@@ -1,17 +1,27 @@
-#include <bluefruit.h>
+#pragma once
 
-#include <string>
-#include <vector>
+#include <stdint.h>
+
+#include "BTHomeBLE.h"
+
+// Platform auto-detection: include the right backend header
+#ifdef __has_include
+#if __has_include(<bluefruit.h>)
+#include "BTHomeBLE_Bluefruit.h"
+#ifndef BTHOME_DEFAULT_BACKEND
+#define BTHOME_DEFAULT_BACKEND BTHomeBLE_Bluefruit
+#endif
+#elif __has_include("nrf54l15_hal.h")
+#include "BTHomeBLE_NRF54.h"
+#ifndef BTHOME_DEFAULT_BACKEND
+#define BTHOME_DEFAULT_BACKEND BTHomeBLE_NRF54
+#endif
+#endif
+#endif
 
 #define BLE_ADVERT_MAX_LEN 31
-#define MEASUREMENT_MAX_LEN 23  // 23=
-// 31(BLE_ADVERT_MAX_LEN)
-//-3(length, flags, flag spec)
-//-1(LENGTH)
-//-1(SERVICE_DATA)
-//-2(UUID)
-//-1(ENCRYPT)
-// =23
+#define MEASUREMENT_MAX_LEN \
+  23  // 31 - 3(flags) - 1(len) - 1(svc_data_type) - 2(UUID) - 1(encrypt) = 23
 #define BIND_KEY_LEN 16
 #define NONCE_LEN 13
 #define UUID16_SVC_BTHOME 0xFCD2
@@ -24,7 +34,7 @@
 #define ID_COUNT 0x09
 #define ID_COUNT2 0x3D
 #define ID_COUNT4 0x3E
-#define ID_CURRENT 0x43
+#define ID_CURRENT 0x5D  // signed value in A
 #define ID_DEWPOINT 0x08
 #define ID_DISTANCE 0x40
 #define ID_DISTANCEM 0x41
@@ -109,7 +119,9 @@
 
 class BTHome {
  public:
-  void begin(const char* device_name);
+  BTHome();
+  BTHome(BTHomeBLE& backend);
+  void begin(const char* device_name, int8_t txPower = 0);
   void sendPacket();
   void resetMeasurement();
   void addMeasurement_state(uint8_t sensor_id, uint8_t state,
@@ -118,14 +130,17 @@ class BTHome {
   void addMeasurement(uint8_t sensor_id, float value);
   void addMeasurement(uint8_t sensor_id, uint8_t* value, uint8_t size);
 
+  BTHomeBLE* backend() { return m_ble; }
+
  private:
   void startAdv();
   uint8_t getByteNumber(uint8_t sens);
   uint16_t getFactor(uint8_t sens);
-  uint8_t m_sensorDataIdx;
-  byte m_sensorData[MEASUREMENT_MAX_LEN] = {0};
   void sortSensorData();
-  String dev_name;
+
+  BTHomeBLE* m_ble;
+  uint8_t m_sensorDataIdx;
+  uint8_t m_sensorData[MEASUREMENT_MAX_LEN];
   bool m_sortEnable;
-  byte last_object_id;
+  uint8_t last_object_id;
 };

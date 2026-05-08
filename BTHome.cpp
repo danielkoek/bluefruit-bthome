@@ -1,11 +1,37 @@
 #include "BTHome.h"
 
-void BTHome::begin(const char* device_name) {
-  Bluefruit.begin();
-  Bluefruit.autoConnLed(false);
-  // -40, -20, -16, -12, -8, -4, 0, +2, +3, +4, +5, +6, +7, +8
-  Bluefruit.setTxPower(0);
-  Bluefruit.setName(device_name);
+#include <Arduino.h>
+#include <string.h>
+
+#ifdef BTHOME_DEFAULT_BACKEND
+static BTHOME_DEFAULT_BACKEND g_defaultBackend;
+#endif
+
+BTHome::BTHome()
+    : m_ble(nullptr),
+      m_sensorDataIdx(0),
+      m_sortEnable(false),
+      last_object_id(0) {
+#ifdef BTHOME_DEFAULT_BACKEND
+  m_ble = &g_defaultBackend;
+#endif
+  memset(m_sensorData, 0, sizeof(m_sensorData));
+}
+
+BTHome::BTHome(BTHomeBLE& backend)
+    : m_ble(&backend),
+      m_sensorDataIdx(0),
+      m_sortEnable(false),
+      last_object_id(0) {
+  memset(m_sensorData, 0, sizeof(m_sensorData));
+}
+
+void BTHome::begin(const char* device_name, int8_t txPower) {
+  if (!m_ble) {
+    Serial.println("BTHome: No BLE backend available");
+    return;
+  }
+  m_ble->init(device_name, txPower);
 }
 
 void BTHome::resetMeasurement() {
@@ -172,69 +198,42 @@ void BTHome::sortSensorData() {
 
 void BTHome::startAdv() {
   if (this->m_sortEnable) sortSensorData();
-  struct ATTR_PACKED {
-    uint16_t bthome_uuid;
-    uint8_t encrypt;
-    uint8_t sensor_measurements[MEASUREMENT_MAX_LEN];
-  } bthome = {
-      .bthome_uuid = UUID16_SVC_BTHOME,
-      .encrypt = NO_ENCRYPT,
-  };
-  uint8_t len = 0;
-  // Add the sensor data to the Service Data
+
+  // Build BTHome service data: UUID16(2) + device_info(1) + measurements
+  uint8_t serviceData[MEASUREMENT_MAX_LEN + 3];
+  uint8_t pos = 0;
+
+  // UUID16 little-endian
+  serviceData[pos++] = UUID16_SVC_BTHOME & 0xFF;
+  serviceData[pos++] = (UUID16_SVC_BTHOME >> 8) & 0xFF;
+  // Device info byte (BTHome v2, no encryption)
+  serviceData[pos++] = NO_ENCRYPT;
+  // Sensor measurements
   for (uint8_t i = 0; i < this->m_sensorDataIdx; i++) {
-    bthome.sensor_measurements[len++] = this->m_sensorData[i];
+    serviceData[pos++] = this->m_sensorData[i];
   }
-  // Print the data to Serial in HEX format
-  Serial.print("Data lenght:");
-  Serial.println(len);
+
+  Serial.print("Data length:");
+  Serial.println(this->m_sensorDataIdx);
   Serial.print("Service Data: ");
-  for (uint8_t i = 0; i < len; i++) {
+  for (uint8_t i = 0; i < this->m_sensorDataIdx; i++) {
     Serial.print("0x");
-    if (bthome.sensor_measurements[i] < 0x10)
-      Serial.print("0");  // pad single digit hex
-    Serial.print(bthome.sensor_measurements[i], HEX);
+    if (this->m_sensorData[i] < 0x10) Serial.print("0");
+    Serial.print(this->m_sensorData[i], HEX);
     Serial.print(" ");
   }
   Serial.println();
-  if (Bluefruit.Advertising.isRunning()) {
-    Serial.println("Stopping current advertising");
-    if (Bluefruit.Advertising.stop()) {
-      Serial.println("Stopped successfully");
-      Bluefruit.Advertising.clearData();
-      Bluefruit.ScanResponse.clearData();
-    }
+
+  if (!m_ble) {
+    Serial.println("No BLE backend");
+    return;
   }
-  Bluefruit.Advertising.addFlags(BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE);
-  if (!Bluefruit.Advertising.addData(BLE_GAP_AD_TYPE_SERVICE_DATA, &bthome,
-                                     len + 3)) {
-    Serial.println("Couldn't add serviceData");
-  }
-  Bluefruit.ScanResponse.addName();
-  Bluefruit.ScanResponse.addTxPower();
-  Bluefruit.Advertising.restartOnDisconnect(true);
-  Bluefruit.Advertising.setInterval(160, 160);  // in unit of 0.625 ms
-  Bluefruit.Advertising.setFastTimeout(30);
-  uint8_t* data = Bluefruit.Advertising.getData();
-  uint16_t count = Bluefruit.Advertising.count();
-  Serial.print("TotalLength: ");
-  Serial.println(count);
-  Serial.print("Raw: ");
-  for (uint8_t i = 0; i < count; i++) {
-    Serial.print("0x");
-    if (data[i] < 0x10) Serial.print("0");  // pad single digit hex
-    Serial.print(data[i], HEX);
-    Serial.print(" ");
-  }
-  Serial.println();
-  if (Bluefruit.Advertising.start(0)) {
-    Serial.println("Started successfully");
+
+  if (m_ble->updateAdvertising(serviceData, pos)) {
+    Serial.println("Advertising started");
   } else {
-    Serial.println("Couldn't start");
-    Bluefruit.Advertising.clearData();
-    Bluefruit.ScanResponse.clearData();
+    Serial.println("Failed to start advertising");
   }
-  //}
 }
 
 uint8_t BTHome::getByteNumber(uint8_t sens) {
