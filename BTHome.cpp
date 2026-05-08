@@ -59,6 +59,9 @@ void BTHome::addMeasurement_state(uint8_t sensor_id, uint8_t state,
     }
     last_object_id = sensor_id;
   } else {
+    Serial.println(
+        "BTHome: packet full, auto-flushing. Call sendPacket() earlier to "
+        "avoid split.");
     sendPacket();
     addMeasurement_state(sensor_id, state, steps);
   }
@@ -81,6 +84,9 @@ void BTHome::addMeasurement(uint8_t sensor_id, uint64_t value) {
     }
     last_object_id = sensor_id;
   } else {
+    Serial.println(
+        "BTHome: packet full, auto-flushing. Call sendPacket() earlier to "
+        "avoid split.");
     sendPacket();
     addMeasurement(sensor_id, value);
   }
@@ -104,6 +110,9 @@ void BTHome::addMeasurement(uint8_t sensor_id, float value) {
     }
     last_object_id = sensor_id;
   } else {
+    Serial.println(
+        "BTHome: packet full, auto-flushing. Call sendPacket() earlier to "
+        "avoid split.");
     sendPacket();
     addMeasurement(sensor_id, value);
   }
@@ -130,6 +139,9 @@ void BTHome::addMeasurement(uint8_t sensor_id, uint8_t* value, uint8_t size) {
     }
     last_object_id = sensor_id;
   } else {
+    Serial.println(
+        "BTHome: packet full, auto-flushing. Call sendPacket() earlier to "
+        "avoid split.");
     sendPacket();
     addMeasurement(sensor_id, value, size);
   }
