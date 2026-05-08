@@ -19,6 +19,7 @@ class BTHomeBLE_NRF54 : public BTHomeBLE {
   bool updateAdvertising(const uint8_t* serviceData, uint16_t len,
                          uint16_t interval625us = 160) override;
   bool supportsExtended() override { return true; }
+  bool getAddress(uint8_t addr[6]) override;
 
  private:
   bool updateLegacy(const uint8_t* serviceData, uint16_t len);

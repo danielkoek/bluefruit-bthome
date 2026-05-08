@@ -19,6 +19,14 @@ class BTHomeBLE_Bluefruit : public BTHomeBLE {
   bool updateAdvertising(const uint8_t* serviceData, uint16_t len,
                          uint16_t interval625us = 160) override;
   bool supportsExtended() override { return true; }
+  bool getAddress(uint8_t addr[6]) override;
+
+ private:
+  bool updateLegacy(const uint8_t* serviceData, uint16_t len,
+                    uint16_t interval625us);
+  bool updateExtended(const uint8_t* serviceData, uint16_t len,
+                      uint16_t interval625us);
+  uint8_t m_extAdvHandle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
 };
 
 #endif  // BTHOME_BLUEFRUIT_AVAILABLE

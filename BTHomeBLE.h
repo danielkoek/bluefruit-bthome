@@ -30,4 +30,8 @@ class BTHomeBLE {
 
   // Returns true if backend supports extended advertising (BLE 5.0+)
   virtual bool supportsExtended() { return false; }
+
+  // Get BLE MAC address. Writes 6 bytes to addr (MSB first). Returns false if
+  // unavailable.
+  virtual bool getAddress(uint8_t addr[6]) { return false; }
 };

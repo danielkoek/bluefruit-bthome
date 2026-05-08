@@ -98,4 +98,8 @@ bool BTHomeBLE_NRF54::updateExtended(const uint8_t* serviceData, uint16_t len) {
   return ok;
 }
 
+bool BTHomeBLE_NRF54::getAddress(uint8_t addr[6]) {
+  return m_ble.getDeviceAddress(addr);
+}
+
 #endif  // BTHOME_NRF54_AVAILABLE

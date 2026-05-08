@@ -244,7 +244,18 @@ void BTHome::startAdv() {
   }
 
   if (m_ble->updateAdvertising(serviceData, pos)) {
-    Serial.println("Advertising started");
+    Serial.print("Advertising started | MAC: ");
+    uint8_t mac[6];
+    if (m_ble->getAddress(mac)) {
+      for (int8_t i = 5; i >= 0; i--) {
+        if (mac[i] < 0x10) Serial.print("0");
+        Serial.print(mac[i], HEX);
+        if (i > 0) Serial.print(":");
+      }
+    } else {
+      Serial.print("unknown");
+    }
+    Serial.println();
   } else {
     Serial.println("Failed to start advertising");
   }
